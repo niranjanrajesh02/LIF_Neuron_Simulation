@@ -15,7 +15,7 @@ from Models.FitzHugh_Nagumo_Interactive import start_FN_sim
 if (__name__ == "__main__"):
     ####### Initialize root
     root = tk.Tk()
-    root.title("Neuron Model Selector")
+    # root.title("Neuron Model Selector")
 
     ####### Size and Position of GUI
     w = 450
@@ -27,9 +27,9 @@ if (__name__ == "__main__"):
     root.geometry('%dx%d+%d+%d' % (w, h, x, y))
 
     ####### Text
-    lbl = tk.Label(root, text="Please select the Model you are interested in:")
-    lbl.pack()
-    lbl.config(font=("MS Sans Serif", 20, "bold"))
+    # lbl = tk.Label(root, text="Please select the Model you are interested in:")
+    # lbl.pack()
+    # lbl.config(font=("MS Sans Serif", 20, "bold"))
 
     ####### Button events --> corresponds to displaying Model
     def LIF_clicked():  # Leaky Integrate and Fire
@@ -47,47 +47,48 @@ if (__name__ == "__main__"):
     def close_window(root=root):  # close window button
         root.destroy()
 
+    start_LIF_sim()
     ####### Buttons
-    LIF_btn = tk.Button(
-        root,
-        text="Leaky Integrate-and-Fire Model",
-        command=LIF_clicked,
-        height=1,
-        width=30)
-    LIF_btn.pack()
+    # LIF_btn = tk.Button(
+    #     root,
+    #     text="Leaky Integrate-and-Fire Model",
+    #     command=LIF_clicked,
+    #     height=1,
+    #     width=30)
+    # LIF_btn.pack()
 
 
-    HH_btn = tk.Button(
-        root,
-        text="Hodgkin-Huxley Model",
-        command=HH_clicked,
-        height=1,
-        width=30)
-    HH_btn.pack()
+    # HH_btn = tk.Button(
+    #     root,
+    #     text="Hodgkin-Huxley Model",
+    #     command=HH_clicked,
+    #     height=1,
+    #     width=30)
+    # HH_btn.pack()
 
-    IZ_btn = tk.Button(
-        root, 
-	text="Izhikevich Model", 
-	command=IZ_clicked, 
-	height=1, 
-	width=30)
-    IZ_btn.pack()
+    # IZ_btn = tk.Button(
+    #     root, 
+	# text="Izhikevich Model", 
+	# command=IZ_clicked, 
+	# height=1, 
+	# width=30)
+    # IZ_btn.pack()
 
-    FN_btn = tk.Button(
-        root,
-        text="FitzHugh-Nagumo Model",
-        command=FN_clicked,
-        height=1,
-        width=30)
-    FN_btn.pack()
+    # FN_btn = tk.Button(
+    #     root,
+    #     text="FitzHugh-Nagumo Model",
+    #     command=FN_clicked,
+    #     height=1,
+    #     width=30)
+    # FN_btn.pack()
 
-    EXIT_btn = tk.Button(
-        root, 
-	text="Exit", 
-	command=close_window, 
-	height=1, 
-	width=15)
-    EXIT_btn.pack()
+    # EXIT_btn = tk.Button(
+    #     root, 
+	# text="Exit", 
+	# command=close_window, 
+	# height=1, 
+	# width=15)
+    # EXIT_btn.pack()
 
     ######## start root
     root.mainloop()

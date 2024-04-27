@@ -7,6 +7,7 @@ Interative plot, showcasing the Leaky Integrate-and-Fire Model
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import  Button, Slider
+from matplotlib.widgets import TextBox
 
 #==============================================================================#
 
@@ -29,7 +30,7 @@ def LIF(_I=0.005, gl=0.16, Cm=0.0049):
     I[1000:4000] = _I
     ######### Measurements
     spikes  =   0                           # counter for number of spikes
-
+    spike_status = False
     ######### Simulation
     for i in range(1, len(time)):
         # use "I - V/R = C * dV/dT" to get this equation
@@ -44,9 +45,18 @@ def LIF(_I=0.005, gl=0.16, Cm=0.0049):
 
     return V
 
-def I_values(_I=0.005, time=None):
+# function that offsets the V values by a certain time interval
+def inhibitedLIF(V, offset=500):
+    V = np.roll(V, offset)
+    V[:offset] = -0.065
+
+    
+    return V
+
+
+def I_values(_I=0.005, time=None, start=1000, end=4000):
     I = np.zeros(len(time))
-    I[1000:4000] = _I
+    I[start:end] = _I
     return I
 
 #==============================================================================#
@@ -61,10 +71,13 @@ def start_LIF_sim():
     I_init  =   0.005
     gl_init =   0.16
     Cm_init =   0.0049
+    I_2_init =  0.005
 
     # update functions for lines
     V = LIF(_I=I_init, gl=gl_init, Cm=Cm_init)
+    V_2 = inhibitedLIF(V, 500)
     I = I_values(_I=I_init, time=time)
+    I_2 = I_values(_I=I_2_init, time=time)
 
     ######### Plotting
     axis_color = 'lightgoldenrodyellow'
@@ -75,8 +88,9 @@ def start_LIF_sim():
     fig.subplots_adjust(left=0.1, bottom=0.32)
 
     # plot lines
-    line = plt.plot(time, V, label="Membrane Potential")[0]
-    line2 = plt.plot(time, I, label="Applied Current")[0]
+    line = plt.plot(time, V, label="Neuron 1 MP")[0]
+    line2 = plt.plot(time, V_2, label="Neuron 2 MP")[0]
+    line3 = plt.plot(time, I, label="Applied Current")[0]
 
     # add legend
     plt.legend(loc="upper right")
@@ -87,7 +101,7 @@ def start_LIF_sim():
 
     # define sliders (position, color, inital value, parameter, etc...)
     I_slider_axis = plt.axes([0.1, 0.17, 0.65, 0.03], facecolor=axis_color)
-    I_slider = Slider(I_slider_axis, '$I_{ext}$', -0.01, 0.03, valinit=I_init)
+    I_slider = Slider(I_slider_axis, '$I_{ext}$', 0, 0.05, valinit=I_init)
 
     gl_slider_axis = plt.axes([0.1, 0.12, 0.65, 0.03], facecolor=axis_color)
     gl_slider = Slider(gl_slider_axis, '$g_{L}$', 0.0, 0.3, valinit=gl_init)
@@ -95,15 +109,24 @@ def start_LIF_sim():
     Cm_slider_axis = plt.axes([0.1, 0.07, 0.65, 0.03], facecolor=axis_color)
     Cm_slider = Slider(Cm_slider_axis, '$C_{m}$', 0.0, 0.01, valinit=Cm_init)
 
+    
+
+
     # update functions
     def update(val):
         line.set_ydata(LIF(I_slider.val, gl_slider.val, Cm_slider.val))
-        line2.set_ydata(I_values(I_slider.val, time=time))
+        line2.set_ydata(inhibitedLIF(line.get_ydata(), int(500 + -1000*I_slider.val**10 )))
+        line3.set_ydata(I_values(I_slider.val, time))
+       
+
+    
+   
 
     # update, if any slider is moved
     I_slider.on_changed(update)
     gl_slider.on_changed(update)
     Cm_slider.on_changed(update)
+    
 
     # Add a button for resetting the parameters
     reset_button_ax = plt.axes([0.8, 0.02, 0.1, 0.04])
