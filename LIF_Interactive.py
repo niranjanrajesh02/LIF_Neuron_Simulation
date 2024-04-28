@@ -11,7 +11,7 @@ from matplotlib.widgets import TextBox
 
 #==============================================================================#
 
-def LIF(_I=0.005, gl=0.16, Cm=0.0049):
+def LIF(I, _I=0.005, gl=0.16, Cm=0.0049):
 
     ######### Constants
     El      =   -0.065                      # restint membrane potential [V]
@@ -26,8 +26,7 @@ def LIF(_I=0.005, gl=0.16, Cm=0.0049):
     V       =   np.empty(len(time))         # array for saving Voltage history
     V[0]    =   El                          # set initial to resting potential
     # CURRENT
-    I = np.zeros(len(time))
-    I[1000:4000] = _I
+    
     ######### Measurements
     spikes  =   0                           # counter for number of spikes
     spike_status = False
@@ -54,9 +53,10 @@ def inhibitedLIF(V, offset=500):
     return V
 
 
-def I_values(_I=0.005, time=None, start=1000, end=4000):
+def I_values(_I=0.005, time=None, start=1000, end=2000, start2=3000, end2=4000):
     I = np.zeros(len(time))
     I[start:end] = _I
+    I[start2:end2] = _I
     return I
 
 #==============================================================================#
@@ -74,10 +74,10 @@ def start_LIF_sim():
     I_2_init =  0.005
 
     # update functions for lines
-    V = LIF(_I=I_init, gl=gl_init, Cm=Cm_init)
-    V_2 = inhibitedLIF(V, 500)
     I = I_values(_I=I_init, time=time)
-    I_2 = I_values(_I=I_2_init, time=time)
+    V = LIF(I, _I=I_init, gl=gl_init, Cm=Cm_init)
+    # V_2 = inhibitedLIF(V, 500)
+    # I_2 = I_values(_I=I_2_init, time=time)
 
     ######### Plotting
     axis_color = 'lightgoldenrodyellow'
@@ -89,7 +89,7 @@ def start_LIF_sim():
 
     # plot lines
     line = plt.plot(time, V, label="Neuron 1 MP")[0]
-    line2 = plt.plot(time, V_2, label="Neuron 2 MP")[0]
+    # line2 = plt.plot(time, V_2, label="Neuron 2 MP")[0]
     line3 = plt.plot(time, I, label="Applied Current")[0]
 
     # add legend
@@ -109,14 +109,25 @@ def start_LIF_sim():
     Cm_slider_axis = plt.axes([0.1, 0.07, 0.65, 0.03], facecolor=axis_color)
     Cm_slider = Slider(Cm_slider_axis, '$C_{m}$', 0.0, 0.01, valinit=Cm_init)
 
+    # current start time and end time text boxes at the bottom left and right
+    I_start_textbox = TextBox(plt.axes([0.1, 0.02, 0.05, 0.03]), 'I_start  ', initial='1000')
+    I_end_textbox = TextBox(plt.axes([0.26, 0.02, 0.05, 0.03]), 'I_end  ', initial='2000')
+
+    # start 2 and end 2 text boxes
+    I_start_textbox_2 = TextBox(plt.axes([0.42, 0.02, 0.05, 0.03]), 'I_start2  ', initial='3000')
+    I_end_textbox_2 = TextBox(plt.axes([0.58, 0.02, 0.05, 0.03]), 'I_end2  ', initial='4000')
     
 
 
     # update functions
     def update(val):
-        line.set_ydata(LIF(I_slider.val, gl_slider.val, Cm_slider.val))
-        line2.set_ydata(inhibitedLIF(line.get_ydata(), int(500 + -1000*I_slider.val**10 )))
-        line3.set_ydata(I_values(I_slider.val, time))
+        # line2.set_ydata(inhibitedLIF(line.get_ydata(), int(500 + -1000*I_slider.val**10 )))
+        start, end = int(I_start_textbox.text), int(I_end_textbox.text)
+        start2, end2 = int(I_start_textbox_2.text), int(I_end_textbox_2.text)
+        I_new = I_values(I_slider.val, time, start=start, end=end, start2=start2, end2=end2)
+        line3.set_ydata(I_new)
+        line.set_ydata(LIF(I_new, I_slider.val, gl_slider.val, Cm_slider.val))
+        # line2.set_ydata(inhibitedLIF(line.get_ydata(), int(500 + -1000*I_slider.val**10 )))
        
 
     
@@ -126,7 +137,23 @@ def start_LIF_sim():
     I_slider.on_changed(update)
     gl_slider.on_changed(update)
     Cm_slider.on_changed(update)
-    
+
+    # update, if any textbox is changed
+    def update_textbox(val):
+        I_start = int(I_start_textbox.text)
+        I_end = int(I_end_textbox.text)
+        I_start_2 = int(I_start_textbox_2.text)
+        I_end_2 = int(I_end_textbox_2.text)
+        I_new = I_values(I_slider.val, time, start=I_start, end=I_end, start2=I_start_2, end2=I_end_2)
+        line3.set_ydata(I_new)
+        line.set_ydata(LIF(I_new, I_slider.val, gl_slider.val, Cm_slider.val))
+        # line2.set_ydata(inhibitedLIF(line.get_ydata(), int(500 + -1000*I_slider.val**10 )))
+        fig.canvas.draw_idle()
+
+    I_start_textbox.on_submit(update_textbox)
+    I_end_textbox.on_submit(update_textbox)
+    I_start_textbox_2.on_submit(update_textbox)
+    I_end_textbox_2.on_submit(update_textbox)
 
     # Add a button for resetting the parameters
     reset_button_ax = plt.axes([0.8, 0.02, 0.1, 0.04])
